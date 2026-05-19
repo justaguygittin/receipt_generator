@@ -152,7 +152,10 @@ def generate():
         qty = int(qty)
         price = float(item['offer_price'])
         gst_percent = float(item['gst_percent'])
-        taxable_value = round(qty * price,3)
+        inclusive_total = round(qty * price,3)
+        taxable_value = round(inclusive_total * 100 /(100 + gst_percent),3)
+
+        total_gst = round(inclusive_total - taxable_value,3)
 
         #Selecting and intializing gst based on state
         if seller_state == buyer_state:
@@ -167,15 +170,15 @@ def generate():
 
         #calculate gst based on state
         if seller_state == buyer_state:
-            cgst_amount = round(taxable_value * cgst_percent / 100,3)
-            sgst_amount = round(taxable_value * sgst_percent / 100,3)
+            cgst_amount = round(total_gst/ 2,3)
+            sgst_amount = round(total_gst/ 2,3)
             igst_amount = 0
         else:
-            igst_amount = round(taxable_value * igst_percent / 100,3)
+            igst_amount = round(total_gst,3)
             cgst_amount = 0
             sgst_amount = 0
 
-        line_total = round(taxable_value + cgst_amount + sgst_amount + igst_amount,3)
+        line_total = inclusive_total
 
         #adding invoice totals
         taxable_total += taxable_value
@@ -199,7 +202,7 @@ def generate():
             "cgst":cgst_amount,
             "sgst":sgst_amount,
             "igst":igst_amount,
-            "total":line_total
+            "line_total": line_total
         })
 
     html = render_template(

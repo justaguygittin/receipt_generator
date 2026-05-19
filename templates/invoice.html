@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>GST Invoice</title>
+
+<style>
+
+body{
+
+    font-family: Arial;
+    padding:5px;
+
+}
+
+table{
+
+    width:100%;
+    border-collapse: collapse;
+
+}
+
+th, td{
+
+    border:1px solid black;
+    padding:4px;
+    text-align:left;
+
+}
+
+.company-box{
+
+    width:50%;
+    vertical-align: top;
+
+}
+
+.invoice-box{
+
+    width:50%;
+    vertical-align: top;
+
+}
+
+.product-section{
+
+    min-height:250px;
+
+}
+
+.tax-table{
+     width:100%;
+}
+
+.right{
+
+    text-align:right;
+
+}
+
+.center{
+
+    text-align:center;
+}
+
+.hsn-col{
+
+    width:12%;
+}
+
+.qty-col{
+
+    width:8%;
+    text-align:center;
+}
+
+.price-col{
+
+    width:12%;
+    text-align:right;
+}
+
+.sno-col{
+
+    width:5%;
+    text-align:center;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<table style="
+width:100%;
+border:none;
+margin-bottom:10px;
+">
+
+<tr style="border:none;">
+
+<td style="
+border:none;
+text-align:left;
+vertical-align:middle;
+">
+
+<h1 style="
+margin:0;
+">
+
+GST INVOICE
+
+</h1>
+
+</td>
+
+<td style="
+border:none;
+text-align:right;
+vertical-align:middle;
+">
+
+<img
+src="static/logo.png"
+style="
+height:80px;
+">
+
+</td>
+
+</tr>
+
+</table>
+
+<table>
+
+<tr>
+
+<td class="company-box">
+
+<b>SRIDEVI ENTERPRISES</b><br>
+#33/4-2, Narayanavaram Road,<br>
+Puttur - 517583, Tirupati Dist, (A.P)<br>
+A/c. No. 32801868991<br>
+Bank: SBI - Town Branch, Puttur<br>
+IFSC: SBIN0012726<br>
+Phone: +91 9440216969<br>
+GSTIN: 37AYFPS6096K1ZL
+
+</td>
+
+<td class="invoice-box">
+<table>
+<tr>
+<td>
+Invoice No:{{ invoice_no }}
+</td>
+<td>
+Date:{{ invoice_date }}
+</td>
+</tr>
+
+<tr>
+<td>
+Dispatch Doc No
+</td>
+<td>
+Delivery Note Date
+</td>
+</tr>
+
+<tr>
+<td>
+Dispatched Through
+</td>
+<td>
+Destination
+</td>
+</tr>
+
+<tr>
+<td colspan="2">
+Terms of Delivery
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="50%">
+<h3>Consignee (Ship To)</h3>
+
+{{ consignee_name }}<br>
+{{ consignee_address }}<br>
+Contact No:{{ consignee_contact }}<br>
+GSTIN:{{ consignee_gstin }}<br>
+Contract No:{{ consignee_contract }}
+
+</td>
+
+<td width="50%">
+<h3>Buyer (Bill To)</h3>
+{{ buyer_name }}<br>
+{{ buyer_address }}<br>
+Contact No:{{ buyer_contact }}<br>
+GSTIN:{{ buyer_gstin }}<br>
+Contract No:{{ buyer_contract }}
+</td>
+</tr>
+</table>
+
+<div class="product-section">
+    <table>
+        <!-- Column widths: 5% | 45% | 12% | 8% | 12% | 18% -->
+        <tr>
+            <th style="width:5%">Sl No</th>
+            <th style="width:45%">Description of Goods</th>
+            <th style="width:12%">HSN</th>
+            <th style="width:8%; text-align:center;">Qty</th>
+            <th style="width:12%; text-align:right;">Rate</th>
+            <th style="width:18%">Taxable Value</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td style="text-align:center;">{{ loop.index }}</td>
+            <td>{{ item.product }} - {{ item.model }}</td>
+            <td>{{ item.hsn }}</td>
+            <td style="text-align:center;">{{ item.qty }}</td>
+            <td style="text-align:right;">{{ "%.3f"|format(item.price) }}</td>
+            <td>{{ "%.3f"|format(item.taxable) }}</td>
+        </tr>
+        {% endfor %}
+
+        <!-- Tax rows: blank(col1+2=50%) | Tax Details(col3+4+5=32%) | Amount(col6=18%) -->
+        <tr>
+            <td colspan="2" style="border:none;"></td>
+            <th colspan="3">Tax Details</th>
+            <th>Amount</th>
+        </tr>
+        {% if seller_state == buyer_state %}
+        <tr>
+            <td colspan="2" style="border:none;"></td>
+            <td colspan="3">OUTPUT CGST (9%)</td>
+            <td>{{ "%.3f"|format(cgst_total) }}</td>
+        </tr>
+        <tr>
+            <td colspan="2" style="border:none;"></td>
+            <td colspan="3">OUTPUT SGST (9%)</td>
+            <td>{{ "%.3f"|format(sgst_total) }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="2" style="border:none;"></td>
+            <td colspan="3">OUTPUT IGST (18%)</td>
+            <td>{{ "%.3f"|format(igst_total) }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <td colspan="2" style="border:none;"></td>
+            <td colspan="3">Rounded Value</td>
+            <td>{{ "%.2f"|format(grand_total|round(0)) }}</td>
+        </tr>
+        <tr>
+            <td colspan="2" style="border:none;"></td>
+            <td colspan="3"><b>Total</b></td>
+            <td><b>{{ "%.2f"|format(grand_total) }}</b></td>
+        </tr>
+    </table>
+</div>
+
+<!-- Summary tax table with explicit column widths to prevent misalignment -->
+<table>
+    <tr>
+        <th style="width:22%">Taxable Value</th>
+        <th style="width:10%">CGST %</th>
+        <th style="width:18%">CGST Amt</th>
+        <th style="width:10%">SGST %</th>
+        <th style="width:18%">SGST Amt</th>
+        <th style="width:22%">Total Tax</th>
+    </tr>
+    <tr>
+        <td>{{ "%.3f"|format(taxable_total) }}</td>
+        <td>{% if seller_state == buyer_state %}9%{% else %}0%{% endif %}</td>
+        <td>{{ "%.3f"|format(cgst_total) }}</td>
+        <td>{% if seller_state == buyer_state %}9%{% else %}0%{% endif %}</td>
+        <td>{{ "%.3f"|format(sgst_total) }}</td>
+        <td>{% if seller_state != buyer_state %}{{ "%.3f"|format(igst_total) }}{% else %}{{ "%.3f"|format(cgst_total + sgst_total) }}{% endif %}</td>
+    </tr>
+</table>
+
+<b>
+
+Amount Chargeable in Words:
+
+</b>
+
+{{ amount_in_words }}
+
+<table border="0">
+
+<tr>
+<td width="70%">
+
+<b>Declaration</b><br>
+
+1. Goods once sold will not be taken back.<br>
+2. Subject to jurisdiction.
+
+</td>
+
+<td class="right">
+for SRIDEVI ENTERPRISES
+<br><br><br><br>
+
+Authorised Signatory
+</td>
+</tr>
+
+</table>
+</body>
+</html>

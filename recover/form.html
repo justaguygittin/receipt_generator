@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Invoice Generator</title>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+
+body{
+    font-family: Arial;
+    padding:20px;
+}
+
+table{
+    width:100%;
+    border-collapse: collapse;
+}
+
+th,td{
+    border:1px solid black;
+    padding:10px;
+}
+
+select,input{
+    width:100%;
+}
+
+button{
+    padding:8px 15px;
+}
+
+textarea{
+    width:100%;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Invoice Generator</h2>
+
+<form action="/generate"
+      method="POST"
+      onsubmit="return validateForm()">
+
+<h3>Buyer (Bill To)</h3>
+
+<input type="text"
+       name="buyer_name"
+       placeholder="Buyer Name"
+       required>
+
+<br><br>
+
+<textarea name="buyer_address"
+          placeholder="Buyer Address"
+          required></textarea>
+
+<br><br>
+
+<input type="text"
+       name="buyer_contact"
+       placeholder="Contact Number"
+       required>
+
+<br><br>
+
+<input type="text"
+       name="buyer_gstin"
+       placeholder="GSTIN"
+       required>
+
+<br><br>
+
+<input type="text"
+       name="buyer_contract"
+       placeholder="Contract Number">
+
+<br><br>
+
+<h3>Consignee (Ship To)</h3>
+
+<input type="text"
+       name="consignee_name"
+       placeholder="Consignee Name"
+       required>
+
+<br><br>
+
+<textarea name="consignee_address"
+          placeholder="Consignee Address"
+          required></textarea>
+
+<br><br>
+
+<input type="text"
+       name="consignee_contact"
+       placeholder="Contact Number"
+       required>
+
+<br><br>
+
+<input type="text"
+       name="consignee_gstin"
+       placeholder="GSTIN"
+       required>
+
+<br><br>
+
+<input type="text"
+       name="consignee_contract"
+       placeholder="Contract Number">
+
+<br><br>
+
+<table id="productTable">
+
+<tr>
+
+<th>S.No</th>
+<th>Product Name</th>
+<th>Model</th>
+<th>Price</th>
+<th>HSN</th>
+<th>Quantity</th>
+<th>Action</th>
+
+</tr>
+
+</table>
+
+<br>
+
+<button type="button"
+onclick="addRow()">
+
+Add Product
+
+</button>
+
+<br><br>
+
+<button type="submit">
+
+Generate Invoice
+
+</button>
+
+</form>
+
+<script>
+
+let serial = 1;
+
+function addRow(){
+
+    let table =
+    document.getElementById("productTable");
+
+    let row = table.insertRow();
+
+    row.innerHTML = `
+
+    <td>${serial}</td>
+
+    <td>
+
+        <select name="product_name[]"
+                onchange="loadModels(this)"
+                required>
+
+            <option value="">
+                Select Product
+            </option>
+
+            {% for p in products %}
+
+            <option value="{{ p.product_name }}">
+
+                {{ p.product_name }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+    </td>
+
+    <td>
+
+        <select name="product_id[]"
+                onchange="updatePrice(this)"
+                required>
+
+            <option value="">
+                Select Model
+            </option>
+
+        </select>
+
+    </td>
+
+    <td>
+
+        <input type="text"
+               name="price[]"
+               readonly>
+
+    </td>
+
+    <td>
+
+        <input type="text"
+            name="hsn[]"
+            placeholder="HSN"
+            required>
+
+    </td>
+    
+    <td>
+
+        <input type="number"
+               name="qty[]"
+               min="1"
+               required>
+
+    </td>
+
+    <td>
+
+        <button type="button"
+                onclick="removeRow(this)">
+
+            Remove
+
+        </button>
+
+    </td>
+    `;
+
+    serial++;
+}
+
+function removeRow(btn){
+
+    btn.parentNode.parentNode.remove();
+
+}
+
+function loadModels(productSelect){
+
+    let product =
+    productSelect.value;
+
+    let row =
+    productSelect.parentNode.parentNode;
+
+    let modelSelect =
+    row.cells[2].querySelector("select");
+
+    $.get(
+
+        '/get_models/' + product,
+
+        function(data){
+
+            modelSelect.innerHTML = '';
+
+            data.forEach(function(item){
+
+                modelSelect.innerHTML += `
+
+                <option
+                    value="${item.id}"
+                    data-price="${item.offer_price}">
+
+                    ${item.model}
+
+                </option>
+
+                `;
+            });
+
+            updatePrice(modelSelect);
+
+        }
+
+    );
+
+}
+
+function updatePrice(modelSelect){
+
+    let selected =
+    modelSelect.options[
+        modelSelect.selectedIndex
+    ];
+
+    let price =
+    selected.getAttribute('data-price');
+
+    let row =
+    modelSelect.parentNode.parentNode;
+
+    row.cells[3]
+       .querySelector("input")
+       .value = price;
+
+}
+
+function validateForm(){
+
+    let rows =
+    document.querySelectorAll(
+        "#productTable tr"
+    );
+
+    if(rows.length <= 1){
+
+        alert(
+            "Add at least one product"
+        );
+
+        return false;
+    }
+
+    let valid = false;
+
+    rows.forEach((row,index)=>{
+
+        if(index === 0) return;
+
+        let model =
+        row.querySelector(
+            'select[name="product_id[]"]'
+        );
+
+        let qty =
+        row.querySelector(
+            'input[name="qty[]"]'
+        );
+
+        if(
+            model &&
+            model.value &&
+            qty &&
+            qty.value
+        ){
+            valid = true;
+        }
+
+    });
+
+    if(!valid){
+
+        alert(
+            "Please enter at least one complete product row"
+        );
+
+        return false;
+    }
+
+    return true;
+
+}
+addRow();
+
+</script>
+
+</body>
+</html>

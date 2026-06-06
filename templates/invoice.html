@@ -276,25 +276,7 @@ Contract No:{{ buyer_contract }}
     </table>
 </div>
 
-<!-- Summary tax table with explicit column widths to prevent misalignment -->
-<table>
-    <tr>
-        <th style="width:22%">Taxable Value</th>
-        <th style="width:10%">CGST %</th>
-        <th style="width:18%">CGST Amt</th>
-        <th style="width:10%">SGST %</th>
-        <th style="width:18%">SGST Amt</th>
-        <th style="width:22%">Total Tax</th>
-    </tr>
-    <tr>
-        <td>{{ "%.3f"|format(taxable_total) }}</td>
-        <td>{% if seller_state == buyer_state %}9%{% else %}0%{% endif %}</td>
-        <td>{{ "%.3f"|format(cgst_total) }}</td>
-        <td>{% if seller_state == buyer_state %}9%{% else %}0%{% endif %}</td>
-        <td>{{ "%.3f"|format(sgst_total) }}</td>
-        <td>{% if seller_state != buyer_state %}{{ "%.3f"|format(igst_total) }}{% else %}{{ "%.3f"|format(cgst_total + sgst_total) }}{% endif %}</td>
-    </tr>
-</table>
+
 
 <b>
 

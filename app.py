@@ -9,10 +9,9 @@ app = Flask(__name__)
 
 db = mysql.connector.connect(
     host="localhost",
-    port=3306,
-    user="root",
-    password="2308",
-    database="srinivas_enterprises"
+    user="gsrikari_Administrator",
+    password="Ringo$tar!23",
+    database="gsrikari_Sridevi_Enterprises"
 )
 
 @app.route('/')
@@ -256,6 +255,7 @@ def generate():
     )
     return response
     
-app.run(debug=True)
+
 if __name__ == "__main__":
+    app.run(debug=True)
     app.run(host="0.0.0.0", port=5000)
